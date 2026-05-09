@@ -101,8 +101,8 @@ int resolve(char *codigo_curto, char *url_original) {
   printf("Resposta: %s\n", resp);
 
   if (strncmp(resp, "OK ", 3) == 0) {
-    strncpy(url_original, resp + 3, CODE_MAX_LEN - 1);
-    url_original[CODE_MAX_LEN - 1] = '\0';
+    strncpy(url_original, resp + 3, URL_MAX_LEN - 1);
+    url_original[URL_MAX_LEN - 1] = '\0';
     close(sockfd);
     return URLSHORT_OK;
   } else {
