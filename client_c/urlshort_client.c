@@ -9,9 +9,27 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define PROXY_IP "127.0.0.1"
-#define PROXY_PORT 8080
 #define BUF_SIZE 1024
+ 
+/* ── Configuração global (padrão: 127.0.0.1:8080) ─────── */
+static urlshort_cfg_t g_cfg = {
+  .server_host = "127.0.0.1",
+  .proxy_port  = 8080
+};
+ 
+void urlshort_cfg_init(urlshort_cfg_t *cfg) {
+  if (!cfg) return;
+  strcpy(cfg->server_host, "127.0.0.1");
+  cfg->proxy_port = 8080;
+}
+ 
+void urlshort_cfg_set(const urlshort_cfg_t *cfg) {
+  if (cfg)
+    g_cfg = *cfg;
+  else
+    urlshort_cfg_init(&g_cfg);
+}
+ 
 
 /* ── Abre conexão TCP com o proxy ─────────────────────── */
 static int conecta(void) {
@@ -25,9 +43,9 @@ static int conecta(void) {
     return URLSHORT_ERR_SOCKET;
   }
 
-  address.sin_family = AF_INET;
-  address.sin_addr.s_addr = inet_addr(PROXY_IP);
-  address.sin_port = htons(PROXY_PORT);
+  address.sin_family      = AF_INET;
+  address.sin_addr.s_addr = inet_addr(g_cfg.server_host);
+  address.sin_port        = htons((uint16_t)g_cfg.proxy_port);
 
   result = connect(sockfd, (struct sockaddr *)&address, sizeof(address));
   if (result == -1) {
@@ -35,9 +53,10 @@ static int conecta(void) {
     close(sockfd);
     return URLSHORT_ERR_CONNECT;
   }
-
+ 
   return sockfd;
 }
+
 
 /* ── encurta() ────────────────────────────────────────── */
 int encurta(char *url_original, char *url_curta) {
