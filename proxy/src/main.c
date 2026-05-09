@@ -1,7 +1,7 @@
 #include "config.h"
 #include "socket_server.h"
 #include <stdio.h>
-
+#include "cache.h"
 int main(void) {
   Config cfg;
 
@@ -10,6 +10,8 @@ int main(void) {
     return -1;
   }
 
+  cache_init(cfg.cache_size);
+  printf("Cache size: %d\n", cfg.cache_size);
   socket_server_run(&cfg);
   return 0;
 }

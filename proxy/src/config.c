@@ -9,6 +9,7 @@ int config_load(Config *cfg, const char *path) {
   cfg->server_port = 3000;
   cfg->proxy_port = 8080;
   cfg->max_clients = 10;
+  cfg->cache_size = 100;
 
   FILE *f = fopen(path, "r");
   if (!f)
@@ -28,6 +29,9 @@ int config_load(Config *cfg, const char *path) {
       cfg->proxy_port = atoi(val);
     else if (strcmp(key, "max_clients") == 0)
       cfg->max_clients = atoi(val);
+    else if (strcmp(key, "cache_size") == 0)
+      cfg->cache_size = atoi(val);
+    
   }
 
   fclose(f);

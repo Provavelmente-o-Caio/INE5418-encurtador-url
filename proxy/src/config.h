@@ -5,6 +5,7 @@ typedef struct {
     int server_port;
     int proxy_port;
     int max_clients;
+    int cache_size;
 } Config;
 
 int config_load(Config *cfg, const char *path);
