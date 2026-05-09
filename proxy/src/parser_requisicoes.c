@@ -1,7 +1,7 @@
 #include "parser_requisicoes.h"
 #include <stdio.h>
 #include <string.h>
-
+#include "cache.h"
 int parse_requisition(const char *requisition, Requisition *out) {
   char requisition_type[32];
   if (sscanf(requisition, "%31s %2047[^\n]", requisition_type, out->content) <
