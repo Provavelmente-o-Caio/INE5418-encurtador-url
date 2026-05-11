@@ -100,9 +100,16 @@ pub async fn list_url(
     State(state): State<AppState>,
     Path(codigo): Path<String>,
 ) -> impl IntoResponse {
-    let map = state.db.lock().unwrap();
+    let mut map = state.db.lock().unwrap();
 
-    let url = map.get(&codigo).map(|entry| entry.url.clone());
+    let url = if let Some(entry) = map.get_mut(&codigo) {
+        entry.acess_count += 1;
+        let url = entry.url.clone();
+        save_database(&map);
+        Some(url)
+    } else {
+        None
+    };
 
     Json(json!({ "url_original": url }))
 }
