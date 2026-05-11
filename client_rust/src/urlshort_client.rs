@@ -31,16 +31,16 @@ impl UrlShortClient {
             .map_err(|_| UrlShortError::Send)?;
 
         let mut buf = [0u8; BUF_SIZE];
-        stream.read(&mut buf).map_err(|_| UrlShortError::Recv)?;
-        let response = String::from_utf8_lossy(&buf).to_string();
+        let n = stream.read(&mut buf).map_err(|_| UrlShortError::Recv)?;
+        let response = String::from_utf8_lossy(&buf[..n]).to_string();
 
         Ok(response)
     }
 
     fn parse_response(response: &str) -> Result<String, UrlShortError> {
-        if let Some(payload) = response.strip_prefix("OK") {
+        if let Some(payload) = response.strip_prefix("OK ") {
             Ok(payload.trim_end().to_string())
-        } else if let Some(payload) = response.strip_prefix("ERR") {
+        } else if let Some(payload) = response.strip_prefix("ERR ") {
             Err(UrlShortError::Server(payload.trim_end().to_string()))
         } else {
             Err(UrlShortError::Proto)
@@ -78,8 +78,6 @@ impl UrlShortClient {
 /* ── Mensagens de erro ────────────────────────────────── */
 #[derive(Debug)]
 pub enum UrlShortError {
-    OK,
-    Socket,
     Connect,
     Send,
     Recv,
@@ -91,8 +89,6 @@ pub enum UrlShortError {
 impl std::fmt::Display for UrlShortError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            UrlShortError::OK => write!(f, "Sucesso"),
-            UrlShortError::Socket => write!(f, "Falha ao criar socket"),
             UrlShortError::Connect => write!(f, "Falha ao conectar ao proxy"),
             UrlShortError::Send => write!(f, "Falha ao enviar dados"),
             UrlShortError::Recv => write!(f, "Falha ao recever dados"),
