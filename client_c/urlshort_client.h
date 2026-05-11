@@ -67,6 +67,12 @@ int resolve(char *codigo_curto, char *url_original);
  */
 int remove_url(char *codigo_curto);
 
+/*
+ * lista() – Lista todas as URLs encurtadas.
+ * Retorna URLSHORT_OK ou código de erro negativo.
+ */
+int lista(char *lista_urls);
+
 /* Retorna string descritiva para um código de erro */
 const char *urlshort_strerror(int err);
 

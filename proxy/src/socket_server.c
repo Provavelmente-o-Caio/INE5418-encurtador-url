@@ -101,6 +101,31 @@ static void *client_thread(void *arg) {
   }
 
   case GET: {
+    if (requisition.content[0] == '\0' ||
+        strcmp(requisition.content, "/urls") == 0 ||
+        strcmp(requisition.content, "urls") == 0) {
+      if (!circuit_can_request()) {
+        protocol_response(response, sizeof(response), 0,
+                          "servidor temporariamente indisponivel");
+        break;
+      }
+
+      int status = http_get(arg_thread->cfg, "/urls", http_response,
+                            sizeof(http_response));
+
+      if (status < 0 || status >= 500)
+        circuit_failure();
+      else
+        circuit_success();
+
+      if (status == 200)
+        protocol_response(response, sizeof(response), 1, http_response);
+      else
+        protocol_response(response, sizeof(response), 0, "erro ao listar");
+
+      break;
+    }
+
     char cached_url[2048];
 
     if (cache_get(requisition.content, cached_url, sizeof(cached_url))) {

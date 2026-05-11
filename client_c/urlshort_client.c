@@ -10,26 +10,26 @@
 #include <unistd.h>
 
 #define BUF_SIZE 1024
- 
+
 /* ── Configuração global (padrão: 127.0.0.1:8080) ─────── */
 static urlshort_cfg_t g_cfg = {
   .server_host = "127.0.0.1",
   .proxy_port  = 8080
 };
- 
+
 void urlshort_cfg_init(urlshort_cfg_t *cfg) {
   if (!cfg) return;
   strcpy(cfg->server_host, "127.0.0.1");
   cfg->proxy_port = 8080;
 }
- 
+
 void urlshort_cfg_set(const urlshort_cfg_t *cfg) {
   if (cfg)
     g_cfg = *cfg;
   else
     urlshort_cfg_init(&g_cfg);
 }
- 
+
 
 /* ── Abre conexão TCP com o proxy ─────────────────────── */
 static int conecta(void) {
@@ -53,7 +53,7 @@ static int conecta(void) {
     close(sockfd);
     return URLSHORT_ERR_CONNECT;
   }
- 
+
   return sockfd;
 }
 
@@ -156,6 +156,39 @@ int remove_url(char *codigo_curto) {
   printf("Resposta: %s\n", resp);
 
   if (strncmp(resp, "OK ", 3) == 0) {
+    close(sockfd);
+    return URLSHORT_OK;
+  } else {
+    close(sockfd);
+    return URLSHORT_ERR_SERVER;
+  }
+}
+
+/* ── lista() ───────────────────────────────────────────── */
+int lista(char *lista_urls) {
+  char msg[BUF_SIZE];
+  char resp[BUF_SIZE];
+  int sockfd;
+
+  /* Mensagem: "GET" */
+  snprintf(msg, sizeof(msg), "GET");
+
+  printf("Enviando: %s\n", msg);
+
+  sockfd = conecta();
+  if (sockfd < 0)
+    return sockfd;
+
+  write(sockfd, msg, strlen(msg));
+
+  memset(resp, 0, sizeof(resp));
+  read(sockfd, resp, sizeof(resp) - 1);
+
+  printf("Resposta: %s\n", resp);
+
+  if (strncmp(resp, "OK ", 3) == 0) {
+    strncpy(lista_urls, resp + 3, BUF_SIZE - 1);
+    lista_urls[BUF_SIZE - 1] = '\0';
     close(sockfd);
     return URLSHORT_OK;
   } else {

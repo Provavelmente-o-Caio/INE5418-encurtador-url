@@ -4,6 +4,7 @@
 #include "cache.h"
 int parse_requisition(const char *requisition, Requisition *out) {
   char requisition_type[32];
+  out->content[0] = '\0';
   if (sscanf(requisition, "%31s %2047[^\n]", requisition_type, out->content) <
       1) {
     return -1;

@@ -36,9 +36,10 @@ pub async fn shorten_url(
     let mut map = state.db.lock().unwrap();
 
     // confere se a url já foi encurtada
-    if let Some(entry) = map.get(&request.url) {
+    if let Some((codigo, _entry)) = map.iter().find(|(_, entry)| entry.url == request.url) {
+        let codigo = codigo.clone();
         return Json(
-            json!({ "codigo": entry.url, "url_curta": format!("{}/r/{}", state.host, entry.url) }),
+            json!({ "codigo": codigo, "url_curta": format!("{}/r/{}", state.host, codigo) }),
         );
     }
 

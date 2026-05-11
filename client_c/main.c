@@ -17,6 +17,8 @@
 
 #include "urlshort_client.h"
 
+#define BUF_SIZE 1024
+
 /* Imprime código de erro de forma amigável */
 static void print_err(const char *op, int code) {
     fprintf(stderr, "[ERRO] %s falhou (codigo %d): %s\n",
@@ -25,32 +27,45 @@ static void print_err(const char *op, int code) {
 
 int main(int argc, char *argv[]) {
 
-    if (argc < 3) {
+    if (argc < 2) {
         fprintf(stderr,
             "Uso:\n"
             "  %s encurta <url_original> [host] [porta]\n"
             "  %s resolve  <codigo_curto> [host] [porta]\n"
-            "  %s remove   <codigo_curto> [host] [porta]\n",
-            argv[0], argv[0], argv[0]);
+            "  %s remove   <codigo_curto> [host] [porta]\n"
+            "  %s lista                   [host] [porta]\n",
+            argv[0], argv[0], argv[0], argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    const char *op = argv[1];
+
+    // "lista" não precisa de argumento — os demais sim
+    if (strcmp(op, "lista") != 0 && argc < 3) {
+        fprintf(stderr, "Erro: operação '%s' requer um argumento.\n", op);
         return EXIT_FAILURE;
     }
 
     /* ── Configuração (host e porta opcionais) ─────────── */
     urlshort_cfg_t cfg;
-    urlshort_cfg_init(&cfg);              /* parte do padrão 127.0.0.1:8080 */
+    urlshort_cfg_init(&cfg);
 
-    if (argc >= 4) {
-        strncpy(cfg.server_host, argv[3], sizeof(cfg.server_host) - 1);
+    // para "lista", host e porta estão em argv[2] e argv[3]
+    // para os demais, estão em argv[3] e argv[4]
+    int host_idx = (strcmp(op, "lista") == 0) ? 2 : 3;
+    int port_idx = host_idx + 1;
+
+    if (argc > host_idx) {
+        strncpy(cfg.server_host, argv[host_idx], sizeof(cfg.server_host) - 1);
         cfg.server_host[sizeof(cfg.server_host) - 1] = '\0';
     }
-    if (argc >= 5) {
-        cfg.proxy_port = atoi(argv[4]);
+    if (argc > port_idx) {
+        cfg.proxy_port = atoi(argv[port_idx]);
     }
 
     urlshort_cfg_set(&cfg);
 
     /* ── Operação ──────────────────────────────────────── */
-    const char *op  = argv[1];
     const char *arg = argv[2];
     int ret;
 
@@ -97,10 +112,22 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
 
+    /* ── lista ──────────────────────────────────────────── */
+    } else if (strcmp(op, "lista") == 0) {
+
+        char urls[BUF_SIZE];
+        ret = lista(urls);
+
+        if (ret == URLSHORT_OK) {
+            printf("Lista de URLs:\n");
+            printf("  %s\n", urls);
+        } else {
+            print_err("lista", ret);
+            return EXIT_FAILURE;
+        }
     } else {
         fprintf(stderr, "Operacao desconhecida: %s\n", op);
         return EXIT_FAILURE;
     }
-
     return EXIT_SUCCESS;
 }

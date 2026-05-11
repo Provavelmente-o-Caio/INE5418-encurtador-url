@@ -65,6 +65,12 @@ impl UrlShortClient {
         Self::parse_response(&resp)
     }
 
+    /* ── lista() ────────────────────────────────────────── */
+    pub fn lista(&self) -> Result<String, UrlShortError> {
+        let resp = self.conecta("GET")?;
+        Self::parse_response(&resp)
+    }
+
     /* ── remove_url() ─────────────────────────────────────── */
     pub fn remove_url(&self, short_url: &str) -> Result<(), UrlShortError> {
         if short_url.is_empty() {
